@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>单词库 · Sam和Chase的韩语计划</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .page-head {
+    padding: 26px 0 18px;
+  }
+  .page-head h1 {
+    font-size: 30px;
+    color: var(--plum);
+    margin: 6px 0 4px;
+  }
+  .page-head .sub {
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .tabs {
+    display: flex;
+    gap: 8px;
+    padding: 5px;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    margin-bottom: 18px;
+  }
+  .tab {
+    flex: 1;
+    padding: 10px 0;
+    text-align: center;
+    border-radius: 10px;
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 14px;
+    font-weight: 700;
+    transition: all .15s ease;
+  }
+  .tab.active {
+    background: var(--rose-500);
+    color: #fff;
+    box-shadow: 0 6px 14px rgba(199,106,138,0.22);
+  }
+  .toolbar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 18px;
+  }
+  .section-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--serif);
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--berry);
+    margin: 24px 0 12px;
+  }
+  .section-title .count {
+    font-family: var(--sans);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--rose-600);
+    background: var(--rose-50);
+    padding: 3px 10px;
+    border-radius: 999px;
+  }
+  .new-badge {
+    background: #e76f82;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .5px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    animation: newFlash 2.4s ease-in-out forwards;
+  }
+  @keyframes newFlash {
+    0% { opacity: 0; }
+    12% { opacity: 1; }
+    24% { opacity: .15; }
+    36% { opacity: 1; }
+    48% { opacity: .15; }
+    60% { opacity: 1; }
+    72% { opacity: .15; }
+    84% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back" href="index.html">← 首页</a>
+  <span class="brand">单词库</span>
+  <span class="spacer"></span>
+</div>
+
+<div class="wrap">
+  <div class="page-head">
+    <div class="eyebrow">VOCABULARY</div>
+    <h1 class="display">Sam和Chase的单词库</h1>
+    <div class="sub">每日推送的词 + 延世词库</div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-view="daily">每日推送</button>
+    <button class="tab" data-view="curated">延世词库</button>
+  </div>
+
+  <div id="daily-view">
+    <div class="toolbar">
+      <input class="search" id="dailySearch" type="text" placeholder="搜索单词或释义…">
+      <span class="chip active" data-pos="全部">全部</span>
+      <span class="chip" data-pos="名">名</span>
+      <span class="chip" data-pos="動">動</span>
+      <span class="chip" data-pos="形">形</span>
+      <span class="chip" data-pos="副">副</span>
+    </div>
+    <div id="dailyList"></div>
+  </div>
+
+  <div id="curated-view" style="display:none;">
+    <div class="toolbar">
+      <input class="search" id="curatedSearch" type="text" placeholder="搜索韩语或中文…">
+      <span class="chip active" data-vol="全部">全部</span>
+      <span class="chip" data-vol="1-2">第1-2册</span>
+      <span class="chip" data-vol="3-4">第3-4册</span>
+      <span class="chip" data-vol="5-6">第5-6册</span>
+    </div>
+    <div id="curatedList"></div>
+  </div>
+</div>
+
+<script>
+  let dailyWords = [];
+
+  let curatedWords = [];
+
+  const posClass = { "名": "tag-name", "動": "tag-verb", "动": "tag-verb", "形": "tag-adj", "副": "tag-adv", "表达": "tag-other" };
+  let dailyPos = "全部";
+  let curatedVol = "全部";
+
+  function highlight(word, text) {
+    if (!text) return text;
+    const esc = text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return word.replace(new RegExp("(" + esc + ")", "gi"), "<b>$1</b>");
+  }
+
+  function renderDaily() {
+    const q = document.getElementById("dailySearch").value.trim();
+    const filtered = dailyWords.filter(w => {
+      const matchPos = dailyPos === "全部" || w.pos === dailyPos;
+      const matchQ = !q || w.word.includes(q) || w.meaning.includes(q) || w.roman.includes(q);
+      return matchPos && matchQ;
+    });
+    if (!filtered.length) {
+      document.getElementById("dailyList").innerHTML = '<div class="empty">没有找到匹配的单词</div>';
+      return;
+    }
+    let html = "";
+    for (const level of ["3급", "3급→4급", "4급"]) {
+      const list = filtered.filter(w => w.level === level);
+      if (!list.length) continue;
+      html += '<div class="section-title">难度 ' + level + ' <span class="count">' + list.length + ' 个</span></div>';
+      for (const w of list) {
+        html += '<div class="word-card"><div class="row">';
+        html += '<span class="kr">' + w.word + '</span>';
+        if (w.isNew) html += '<span class="new-badge">NEW</span>';
+        html += '<span class="roman">[' + w.roman + ']</span>';
+        html += '<span class="tag ' + (posClass[w.pos] || 'tag-other') + '">' + w.pos + '</span>';
+        html += '<span class="meaning">' + w.meaning + '</span>';
+        html += '</div><div class="example">' + highlight(w.example, w.word) + '<span class="cn">' + w.cn + '</span></div></div>';
+      }
+    }
+    document.getElementById("dailyList").innerHTML = html;
+    document.querySelectorAll("#dailyList .new-badge").forEach(b => setTimeout(() => b.remove(), 2400));
+  }
+
+  function renderCurated() {
+    const q = document.getElementById("curatedSearch").value.trim();
+    const filtered = curatedWords.filter(w => {
+      const matchVol = curatedVol === "全部" || w.vol === curatedVol;
+      const matchQ = !q || w.kr.includes(q) || w.zh.includes(q);
+      return matchVol && matchQ;
+    });
+    if (!filtered.length) {
+      document.getElementById("curatedList").innerHTML = '<div class="empty">没有找到匹配的单词</div>';
+      return;
+    }
+    let html = "";
+    for (const vol of ["1-2", "3-4", "5-6"]) {
+      const list = filtered.filter(w => w.vol === vol);
+      if (!list.length) continue;
+      const name = vol === "1-2" ? "初级" : vol === "3-4" ? "中级" : "高级";
+      html += '<div class="section-title">第' + vol + '册 · ' + name + ' <span class="count">' + list.length + ' 个</span></div>';
+      for (const w of list) {
+        html += '<div class="word-card"><div class="row">';
+        html += '<span class="kr">' + w.kr + '</span>';
+        html += '<span class="tag ' + (posClass[w.pos] || 'tag-other') + '">' + w.pos + '</span>';
+        html += '<span class="meaning">' + w.zh + '</span>';
+        html += '</div></div>';
+      }
+    }
+    document.getElementById("curatedList").innerHTML = html;
+  }
+
+  document.querySelectorAll(".tab").forEach(tab => {
+    tab.addEventListener("click", () => {
+      document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      const v = tab.dataset.view;
+      document.getElementById("daily-view").style.display = v === "daily" ? "" : "none";
+      document.getElementById("curated-view").style.display = v === "curated" ? "" : "none";
+    });
+  });
+
+  document.getElementById("dailySearch").addEventListener("input", renderDaily);
+  document.querySelectorAll("#daily-view .chip").forEach(c => c.addEventListener("click", () => {
+    document.querySelectorAll("#daily-view .chip").forEach(x => x.classList.remove("active"));
+    c.classList.add("active");
+    dailyPos = c.dataset.pos;
+    renderDaily();
+  }));
+
+  document.getElementById("curatedSearch").addEventListener("input", renderCurated);
+  document.querySelectorAll("#curated-view .chip").forEach(c => c.addEventListener("click", () => {
+    document.querySelectorAll("#curated-view .chip").forEach(x => x.classList.remove("active"));
+    c.classList.add("active");
+    curatedVol = c.dataset.vol;
+    renderCurated();
+  }));
+
+  fetch("data/daily.json")
+    .then(r => r.json())
+    .then(days => {
+      const lastDay = Math.max(...days.map(d => d.day));
+      dailyWords = days.flatMap(d => d.words.map(w => ({
+        word: w.kr,
+        roman: w.roman,
+        pos: w.pos,
+        meaning: w.meaning,
+        example: w.example,
+        cn: w.cn,
+        level: d.level,
+        isNew: d.day === lastDay
+      })));
+      renderDaily();
+    })
+    .catch(() => {
+      document.getElementById("dailyList").innerHTML = '<div class="empty">每日单词加载失败</div>';
+    });
+
+  fetch("data/yonsei/combined.json")
+    .then(r => r.json())
+    .then(rows => {
+      curatedWords = rows.map(w => ({
+        ...w,
+        vol: w.vol <= 2 ? "1-2" : w.vol <= 4 ? "3-4" : "5-6"
+      }));
+      renderCurated();
+    })
+    .catch(() => {
+      document.getElementById("curatedList").innerHTML = '<div class="empty">延世词库加载失败</div>';
+    });
+</script>
+</body>
+</html>

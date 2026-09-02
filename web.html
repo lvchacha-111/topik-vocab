@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>今日单词 · Sam和Chase的韩语计划</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .day-strip {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 18px 20px 14px;
+    scrollbar-width: none;
+  }
+  .day-strip::-webkit-scrollbar { display: none; }
+  .day-btn {
+    flex: none;
+    min-width: 60px;
+    padding: 11px 10px;
+    border-radius: 14px;
+    border: 1px solid var(--line);
+    background: var(--surface);
+    color: var(--muted);
+    font-size: 12px;
+    text-align: center;
+    transition: all .15s ease;
+  }
+  .day-btn .d { display: block; font-size: 16px; font-weight: 700; color: var(--plum); }
+  .day-btn .lvl { display: block; font-size: 10px; margin-top: 4px; color: var(--rose-600); }
+  .day-btn.active { background: var(--rose-500); border-color: var(--rose-500); color: #fff; box-shadow: 0 8px 18px rgba(199,106,138,0.24); }
+  .day-btn.active .d, .day-btn.active .lvl { color: #fff; }
+
+  .day-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin: 8px 0 16px;
+  }
+  .day-head .big {
+    font-family: var(--serif);
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--plum);
+  }
+  .day-head .date {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .level-pill {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--rose-600);
+    background: var(--rose-50);
+    padding: 5px 12px;
+    border-radius: 999px;
+  }
+  .progress-card {
+    padding: 16px 18px;
+    margin-bottom: 20px;
+  }
+  .progress-card .labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .progress-card .bar {
+    height: 8px;
+    background: var(--rose-100);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .progress-card .fill {
+    height: 8px;
+    background: linear-gradient(90deg, var(--rose-400), var(--rose-500));
+    border-radius: 999px;
+    transition: width .4s ease;
+  }
+  .footer-note {
+    text-align: center;
+    margin-top: 26px;
+    padding: 26px 22px;
+  }
+  .footer-note .love {
+    font-family: var(--serif);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--rose-600);
+  }
+  .footer-note .hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 8px;
+  }
+  .footer-note .sub {
+    font-size: 11px;
+    color: #c3a8b3;
+    margin-top: 10px;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back" href="index.html">← 首页</a>
+  <span class="brand">今日单词</span>
+  <span class="spacer"></span>
+</div>
+
+<div class="day-strip" id="dayStrip"></div>
+
+<div class="wrap" style="padding-top:20px;">
+  <div class="day-head">
+    <div>
+      <div class="big" id="dayTitle">第 47 天</div>
+      <div class="date" id="dayDate">2026.10.19</div>
+    </div>
+    <span class="level-pill" id="dayLevel">4급 · 核心</span>
+  </div>
+
+  <div class="card progress-card">
+    <div class="labels">
+      <span>一起背过的单词 · <b id="learnedCount">940</b></span>
+      <span>目标 3,000</span>
+    </div>
+    <div class="bar"><div class="fill" id="progressFill" style="width:31%;"></div></div>
+  </div>
+
+  <div id="wordArea"></div>
+
+  <div class="card footer-note">
+    <div class="love">오늘도 너를 사랑해 <a class="speak" href="#" onclick="playPhrase(event, this);return false;">🔊</a></div>
+    <div class="hint">今天请对 Sam 说 · 今天也爱你</div>
+    <div class="sub">明天也一起吧 · 每天20个单词 · TOPIK 4级</div>
+  </div>
+</div>
+
+<script>
+  let days = [];
+
+  const posClass = { "名": "tag-name", "動": "tag-verb", "形": "tag-adj", "副": "tag-adv" };
+
+  function ttsUrl(text) {
+    return "https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&q=" + encodeURIComponent(text) + "&tl=ko";
+  }
+
+  function playPhrase(e, el) {
+    e.preventDefault();
+    const a = new Audio(ttsUrl("오늘도 너를 사랑해"));
+    a.play();
+  }
+
+  function renderStrip() {
+    document.getElementById("dayStrip").innerHTML = days.map(d =>
+      '<button class="day-btn" data-day="' + d.day + '">' +
+        '<span class="d">Day ' + d.day + '</span>' +
+        '<span class="lvl">' + d.level + '</span>' +
+      '</button>'
+    ).join("");
+    document.querySelectorAll(".day-btn").forEach(btn => {
+      btn.addEventListener("click", () => selectDay(Number(btn.dataset.day)));
+    });
+  }
+
+  function selectDay(day) {
+    const d = days.find(x => x.day === day);
+    if (!d) return;
+    document.querySelectorAll(".day-btn").forEach(b => b.classList.remove("active"));
+    document.querySelector('.day-btn[data-day="' + day + '"]').classList.add("active");
+    document.getElementById("dayTitle").textContent = "第 " + d.day + " 天";
+    document.getElementById("dayDate").textContent = d.date;
+    document.getElementById("dayLevel").textContent = d.level + " · " + d.label;
+    const learned = d.learned || d.day * 20;
+    document.getElementById("learnedCount").textContent = learned;
+    document.getElementById("progressFill").style.width = Math.round((learned / 3000) * 100) + "%";
+
+    document.getElementById("wordArea").innerHTML = d.words.map(w => {
+      const ex = w.example.replace(w.kr, "<b>" + w.kr + "</b>");
+      return '<div class="word-card">' +
+        '<div class="row">' +
+          '<span class="kr">' + w.kr + '</span>' +
+          '<span class="roman">[' + w.roman + ']</span>' +
+          '<a class="speak" href="' + ttsUrl(w.kr) + '" target="_blank" onclick="var a=new Audio(this.href);a.play();return false;">🔊</a>' +
+          '<span class="tag ' + (posClass[w.pos] || 'tag-other') + '">' + w.pos + '</span>' +
+          '<span class="meaning">' + w.meaning + '</span>' +
+        '</div>' +
+        '<div class="example">' + ex + '<span class="cn">' + w.cn + '</span></div>' +
+      '</div>';
+    }).join("");
+  }
+
+  fetch("data/daily.json")
+    .then(r => r.json())
+    .then(data => {
+      days = data;
+      renderStrip();
+      selectDay(days[days.length - 1].day);
+    })
+    .catch(() => {
+      document.getElementById("wordArea").innerHTML = '<div class="empty">单词加载失败</div>';
+    });
+</script>
+</body>
+</html>

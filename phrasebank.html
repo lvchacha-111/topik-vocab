@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>想对他说的话 · Sam和Chase的韩语计划</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  .page-head {
+    padding: 26px 0 20px;
+    text-align: center;
+  }
+  .page-head h1 {
+    font-size: 30px;
+    color: var(--plum);
+    margin: 6px 0 4px;
+  }
+  .page-head .sub {
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .phrase-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 20px 22px;
+    margin-bottom: 12px;
+  }
+  .phrase-card > div:first-child {
+    flex: 1;
+    min-width: 0;
+  }
+  .phrase-card .kr {
+    font-family: var(--serif);
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--plum);
+  }
+  .phrase-card .roman {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 4px;
+  }
+  .phrase-card .cn {
+    font-size: 13px;
+    color: var(--rose-600);
+    margin-top: 5px;
+  }
+  .phrase-card .day {
+    flex: none;
+    min-width: 54px;
+    text-align: center;
+    font-size: 11px;
+    color: var(--rose-600);
+    background: var(--rose-50);
+    padding: 4px 11px;
+    border-radius: 999px;
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a class="back" href="index.html">← 首页</a>
+  <span class="brand">想对他说的话</span>
+  <span class="spacer"></span>
+</div>
+
+<div class="wrap" style="max-width:680px;">
+  <div class="page-head">
+    <div class="eyebrow">LOVE NOTES</div>
+    <h1 class="display">想对他说的话</h1>
+    <div class="sub">每天一句韩语，说给他听</div>
+  </div>
+
+  <div id="list"></div>
+</div>
+
+<script>
+  function ttsUrl(t) {
+    return "https://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&q=" + encodeURIComponent(t) + "&tl=ko";
+  }
+
+  function render(phrases) {
+    document.getElementById("list").innerHTML = phrases.map((p, i) =>
+      '<div class="card phrase-card">' +
+        '<div>' +
+          '<div class="kr">' + p.kr + '</div>' +
+          '<div class="roman">[' + p.roman + ']</div>' +
+          '<div class="cn">' + p.cn + '</div>' +
+        '</div>' +
+        '<span class="day">第' + (i + 1) + '天</span>' +
+        '<a class="speak" href="' + ttsUrl(p.kr) + '" target="_blank" onclick="var a=new Audio(this.href);a.play();return false;">🔊</a>' +
+      '</div>'
+    ).join("");
+  }
+
+  fetch("data/phrases.json")
+    .then(r => r.json())
+    .then(render)
+    .catch(() => {
+      document.getElementById("list").innerHTML = '<div class="empty">情话加载失败</div>';
+    });
+</script>
+</body>
+</html>
