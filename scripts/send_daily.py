@@ -68,17 +68,18 @@ def build_html(day, phrase):
 def send_email(html, subject):
     sender = os.environ["QQ_EMAIL"]
     receiver = os.environ.get("QQ_RECEIVER", sender)
+    receivers = [r.strip() for r in receiver.split(",") if r.strip()]
     auth_code = os.environ["QQ_SMTP_CODE"]
 
     msg = MIMEMultipart("alternative")
     msg["Subject"] = subject
     msg["From"] = sender
-    msg["To"] = receiver
+    msg["To"] = ", ".join(receivers)
     msg.attach(MIMEText(html, "html", "utf-8"))
 
     server = smtplib.SMTP_SSL("smtp.qq.com", 465)
     server.login(sender, auth_code)
-    server.sendmail(sender, [receiver], msg.as_string())
+    server.sendmail(sender, receivers, msg.as_string())
     server.quit()
 
 
