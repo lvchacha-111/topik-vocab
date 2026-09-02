@@ -196,7 +196,7 @@
     .then(data => {
       days = data;
       renderStrip();
-      selectDay(days[days.length - 1].day);
+      selectDay(days[0].day);
     })
     .catch(() => {
       document.getElementById("wordArea").innerHTML = '<div class="empty">单词加载失败</div>';

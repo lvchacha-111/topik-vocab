@@ -239,7 +239,7 @@
   fetch("data/daily.json")
     .then(r => r.json())
     .then(days => {
-      const lastDay = Math.max(...days.map(d => d.day));
+      const currentDay = Math.min(...days.map(d => d.day));
       dailyWords = days.flatMap(d => d.words.map(w => ({
         word: w.kr,
         roman: w.roman,
@@ -248,7 +248,7 @@
         example: w.example,
         cn: w.cn,
         level: d.level,
-        isNew: d.day === lastDay
+        isNew: d.day === currentDay
       })));
       renderDaily();
     })
