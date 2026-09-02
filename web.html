@@ -182,7 +182,9 @@
     document.getElementById("progressFill").style.width = Math.round((learned / 3000) * 100) + "%";
 
     document.getElementById("wordArea").innerHTML = d.words.map(w => {
-      const ex = w.example.replace(w.kr, "<b>" + w.kr + "</b>");
+      const exHtml = w.example
+        ? '<div class="example">' + w.example.replace(w.kr, "<b>" + w.kr + "</b>") + '<span class="cn">' + w.cn + '</span></div>'
+        : '';
       return '<div class="word-card">' +
         '<div class="row">' +
           '<span class="kr">' + w.kr + '</span>' +
@@ -191,7 +193,7 @@
           '<span class="tag ' + (posClass[w.pos] || 'tag-other') + '">' + w.pos + '</span>' +
           '<span class="meaning">' + w.meaning + '</span>' +
         '</div>' +
-        '<div class="example">' + ex + '<span class="cn">' + w.cn + '</span></div>' +
+        exHtml +
       '</div>';
     }).join("");
   }

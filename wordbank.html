@@ -175,7 +175,9 @@
         html += '<span class="roman">[' + w.roman + ']</span>';
         html += '<span class="tag ' + (posClass[w.pos] || 'tag-other') + '">' + w.pos + '</span>';
         html += '<span class="meaning">' + w.meaning + '</span>';
-        html += '</div><div class="example">' + highlight(w.example, w.word) + '<span class="cn">' + w.cn + '</span></div></div>';
+        html += '</div>';
+        if (w.example) html += '<div class="example">' + highlight(w.example, w.word) + '<span class="cn">' + w.cn + '</span></div>';
+        html += '</div>';
       }
     }
     document.getElementById("dailyList").innerHTML = html;
