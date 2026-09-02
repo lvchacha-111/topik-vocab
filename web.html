@@ -152,6 +152,11 @@
     a.play();
   }
 
+  function currentDayNum() {
+    const start = new Date("2026-09-02T00:00:00+08:00");
+    return Math.floor((Date.now() - start.getTime()) / 86400000) + 1;
+  }
+
   function renderStrip() {
     document.getElementById("dayStrip").innerHTML = days.map(d =>
       '<button class="day-btn" data-day="' + d.day + '">' +
@@ -194,9 +199,10 @@
   fetch("data/daily.json")
     .then(r => r.json())
     .then(data => {
-      days = data;
+      const cur = currentDayNum();
+      days = data.filter(d => d.day <= cur);
       renderStrip();
-      selectDay(days[0].day);
+      selectDay(days[days.length - 1].day);
     })
     .catch(() => {
       document.getElementById("wordArea").innerHTML = '<div class="empty">单词加载失败</div>';

@@ -239,8 +239,9 @@
   fetch("data/daily.json")
     .then(r => r.json())
     .then(days => {
-      const currentDay = Math.min(...days.map(d => d.day));
-      dailyWords = days.flatMap(d => d.words.map(w => ({
+      const start = new Date("2026-09-02T00:00:00+08:00");
+      const currentDay = Math.floor((Date.now() - start.getTime()) / 86400000) + 1;
+      dailyWords = days.filter(d => d.day <= currentDay).flatMap(d => d.words.map(w => ({
         word: w.kr,
         roman: w.roman,
         pos: w.pos,
